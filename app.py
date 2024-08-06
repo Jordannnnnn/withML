@@ -502,7 +502,7 @@ def watchlistRemove():
                 for x in result:
                     cursor2 = db.cursor(buffered=True)
                     deleteStock = (
-                        """DELETE FROM watchlist WHERE UserID = '%s' and StockTicker = '%s'"""
+                        """DELETE FROM Watchlist WHERE UserID = '%s' and StockTicker = '%s'"""
                         % (x[0], str(stockToDelete))
                     )
                     cursor2.execute(deleteStock)
