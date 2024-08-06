@@ -487,10 +487,11 @@ def watchlistRemove():
                 stockToDelete = request.form["removeStock"]
 
                 db = mysql.connector.connect(
-                    host="localhost",
-                    user="root",
-                    password="root",
-                    database="market_prophet",
+                    host = "db-mysql-sgp1-12968-do-user-17367918-0.j.db.ondigitalocean.com",
+                    user = "doadmin",
+                    password = "AVNS_ItKG7fksQ2ww_rQ7MLX",
+                    database = "market_prophet",
+                    port = 25060
                 )
 
                 cursor = db.cursor(buffered=True)
