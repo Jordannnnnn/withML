@@ -134,9 +134,9 @@ def register():
         cursor = db.cursor(buffered=True)
         cursor2 = db.cursor(buffered=True)
         checkDuplicateUsername = (
-            """SELECT Username FROM users WHERE Username = '%s'""" % (username)
+            """SELECT Username FROM Users WHERE Username = '%s'""" % (username)
         )
-        checkDuplicateEmail = """SELECT Email FROM users WHERE Email='%s'""" % (email)
+        checkDuplicateEmail = """SELECT Email FROM Users WHERE Email='%s'""" % (email)
         cursor.execute(checkDuplicateUsername)
         cursor2.execute(checkDuplicateEmail)
         result = cursor.fetchall()
@@ -147,7 +147,7 @@ def register():
         elif len(result2) > 0:
             error = "Email already exists. Please try again!"
         else:
-            registerCredentials = "INSERT INTO users (Username, Password, Email, FirstName, LastName) VALUES (%s, %s, %s, %s, %s)"
+            registerCredentials = "INSERT INTO Users (Username, Password, Email, FirstName, LastName) VALUES (%s, %s, %s, %s, %s)"
             values = (username, password, email, fname, lname)
             cursor.execute(registerCredentials, values)
             db.commit()
@@ -179,7 +179,7 @@ def login():
 
         cursor = db.cursor(buffered=True)
         checkCredentials = (
-            """SELECT Username, Password FROM users WHERE Username = '%s' AND Password= '%s'"""
+            """SELECT Username, Password FROM Users WHERE Username = '%s' AND Password= '%s'"""
             % (username, password)
         )
         cursor.execute(checkCredentials)
@@ -188,7 +188,7 @@ def login():
         if len(result) < 1:
             error = "Invalid credentials, please try again!"
         else:
-            checkRoleType = """SELECT Role FROM users WHERE Username = '%s'""" % (
+            checkRoleType = """SELECT Role FROM Users WHERE Username = '%s'""" % (
                 username
             )
             cursor.execute(checkRoleType)
@@ -196,7 +196,7 @@ def login():
             for x in roleType:
                 if str(x[0]) == "User":
                     cursor2 = db.cursor(buffered=True)
-                    getUserID = """SELECT UserID from users WHERE Username = '%s'""" % (
+                    getUserID = """SELECT UserID from Users WHERE Username = '%s'""" % (
                         username
                     )
                     cursor2.execute(getUserID)
@@ -206,7 +206,7 @@ def login():
                     for y in userID:
                         cursor3 = db.cursor(buffered=True)
                         getWatchlist = (
-                            """SELECT StockTicker from watchlist WHERE UserID = '%s'"""
+                            """SELECT StockTicker from Watchlist WHERE UserID = '%s'"""
                             % (str(y[0]).replace("()", ""))
                         )
                         cursor3.execute(getWatchlist)
@@ -241,14 +241,14 @@ def userDashboard():
         )
 
         cursor = db.cursor(buffered=True)
-        getUserID = """SELECT UserID from users WHERE Username = '%s'""" % (username)
+        getUserID = """SELECT UserID from Users WHERE Username = '%s'""" % (username)
         cursor.execute(getUserID)
         userID = cursor.fetchall()
 
         for y in userID:
             cursor2 = db.cursor(buffered=True)
             getWatchlist = (
-                """SELECT StockTicker from watchlist WHERE UserID = '%s'"""
+                """SELECT StockTicker from Watchlist WHERE UserID = '%s'"""
                 % (str(y[0]).replace("()", ""))
             )
             cursor2.execute(getWatchlist)
@@ -435,7 +435,7 @@ def watchlistAdd():
 
         cursor = db.cursor(buffered=True)
 
-        getUserID = "SELECT UserID from users WHERE username='%s'" % (username)
+        getUserID = "SELECT UserID from Users WHERE Username='%s'" % (username)
         cursor.execute(getUserID)
         result = cursor.fetchall()
 
@@ -443,7 +443,7 @@ def watchlistAdd():
             for x in result:
                 cursor2 = db.cursor(buffered=True)
                 checkDuplicate = (
-                    "SELECT StockTicker from watchlist WHERE StockTicker='%s' and UserID = '%s'"
+                    "SELECT StockTicker from Watchlist WHERE StockTicker='%s' and UserID = '%s'"
                     % (ticker, str(x[0]))
                 )
                 cursor2.execute(checkDuplicate)
@@ -451,7 +451,7 @@ def watchlistAdd():
                 if len(checkDuplicateResult) < 1:
                     cursor3 = db.cursor(buffered=True)
                     updateWatchlist = (
-                        "INSERT INTO watchlist (UserID, StockTicker) VALUES (%s, %s)"
+                        "INSERT INTO Watchlist (UserID, StockTicker) VALUES (%s, %s)"
                     )
                     values = (str(x[0]), ticker)
                     cursor3.execute(updateWatchlist, values)
@@ -460,7 +460,7 @@ def watchlistAdd():
 
                     cursor4 = db.cursor(buffered=True)
                     getWatchlist = (
-                        """SELECT StockTicker from watchlist WHERE UserID = '%s'"""
+                        """SELECT StockTicker from Watchlist WHERE UserID = '%s'"""
                         % (str(x[0]))
                     )
                     cursor4.execute(getWatchlist)
@@ -494,7 +494,7 @@ def watchlistRemove():
                 )
 
                 cursor = db.cursor(buffered=True)
-                getUserID = "SELECT UserID from users WHERE Username = '%s'" % (
+                getUserID = "SELECT UserID from Users WHERE Username = '%s'" % (
                     username
                 )
                 cursor.execute(getUserID)
@@ -586,7 +586,7 @@ def viewProfile():
 
         cursor = db.cursor()
         displayUserDetails = (
-            """SELECT Username, Email, FirstName, LastName from users WHERE username = '%s'"""
+            """SELECT Username, Email, FirstName, LastName from Users WHERE Username = '%s'"""
             % (username)
         )
         cursor.execute(displayUserDetails)
@@ -617,7 +617,7 @@ def updateProfile():
 
         cursor = db.cursor(buffered=True)
         checkExistingUser = (
-            """SELECT Username, Password FROM users WHERE Username='%s' and Password='%s'"""
+            """SELECT Username, Password FROM Users WHERE Username='%s' and Password='%s'"""
             % (username, current_password)
         )
         cursor.execute(checkExistingUser)
@@ -626,7 +626,7 @@ def updateProfile():
         if len(result) < 1:
             error = "Invalid credentials, please try again!"
         else:
-            updateCredentials = """UPDATE users SET Password = %s, firstName=%s, lastName=%s WHERE Username = %s"""
+            updateCredentials = """UPDATE Users SET Password = %s, firstName=%s, lastName=%s WHERE Username = %s"""
             values = (new_password, fname, lname, username)
             cursor.execute(updateCredentials, values)
             db.commit()
@@ -650,12 +650,12 @@ def deleteProfile():
             )
 
             cursor = db.cursor()
-            getUserID = "SELECT UserID from users where username = '%s'" % (username)
+            getUserID = "SELECT UserID from Users where Username = '%s'" % (username)
             cursor.execute(getUserID)
             result = cursor.fetchall()
             for x in result:
                 cursor = db.cursor()
-                deleteUser = "DELETE FROM users WHERE UserID = '%s'" % (x[0])
+                deleteUser = "DELETE FROM Users WHERE UserID = '%s'" % (x[0])
                 cursor.execute(deleteUser)
                 db.commit()
             return redirect(url_for("index"))
@@ -684,7 +684,7 @@ def adminSearch():
 
         cursor = db.cursor(buffered=True)
         checkExistingUser = (
-            """SELECT Username from users WHERE Username='%s' AND NOT Role = 'Admin'"""
+            """SELECT Username from Users WHERE Username='%s' AND NOT Role = 'Admin'"""
             % (username)
         )
         cursor.execute(checkExistingUser)
@@ -694,7 +694,7 @@ def adminSearch():
             error = "User does not exist. Please try again!"
         else:
             displayUserDetails = (
-                """SELECT Username, Email, FirstName, LastName from users WHERE Username='%s'"""
+                """SELECT Username, Email, FirstName, LastName from Users WHERE Username='%s'"""
                 % (username)
             )
             cursor.execute(displayUserDetails)
@@ -723,14 +723,14 @@ def adminUpdate():
                     database="market_prophet",
                 )
                 cursor = db.cursor()
-                getUserID = """SELECT UserID from users WHERE username = '%s'""" % (
+                getUserID = """SELECT UserID from Users WHERE Username = '%s'""" % (
                     username
                 )
                 cursor.execute(getUserID)
                 result = cursor.fetchall()
                 for x in result:
                     cursor = db.cursor()
-                    deleteUser = "DELETE FROM users WHERE UserID = '%s'" % (x[0])
+                    deleteUser = "DELETE FROM Users WHERE UserID = '%s'" % (x[0])
                     cursor.execute(deleteUser)
                     db.commit()
                 flash("User successfully deleted!")
@@ -746,7 +746,7 @@ def adminUpdate():
                 )
                 cursor = db.cursor()
                 getUserDetails = (
-                    """SELECT Username, Email, FirstName, LastName FROM users WHERE Username='%s'"""
+                    """SELECT Username, Email, FirstName, LastName FROM Users WHERE Username='%s'"""
                     % (username)
                 )
                 cursor.execute(getUserDetails)
@@ -771,13 +771,13 @@ def adminUpdate():
                 )
                 if not (email):
                     cursor = db.cursor()
-                    updateDetails = """UPDATE users set FirstName = %s, LastName = %s WHERE Username = %s"""
+                    updateDetails = """UPDATE Users set FirstName = %s, LastName = %s WHERE Username = %s"""
                     values = (firstName, lastName, username)
                     cursor.execute(updateDetails, values)
                     db.commit()
                 elif not (firstName):
                     cursor = db.cursor()
-                    updateDetails = """UPDATE users set Email= %s, LastName = %s WHERE Username = %s"""
+                    updateDetails = """UPDATE Users set Email= %s, LastName = %s WHERE Username = %s"""
                     values = (email, lastName, username)
                     cursor.execute(updateDetails, values)
                     db.commit()
@@ -790,7 +790,7 @@ def adminUpdate():
                 elif not (email, firstName):
                     cursor = db.cursor()
                     updateDetails = (
-                        """UPDATE users set LastName= %s WHERE Username = %s"""
+                        """UPDATE Users set LastName= %s WHERE Username = %s"""
                     )
                     values = (lastName, username)
                     cursor.execute(updateDetails, values)
@@ -798,20 +798,20 @@ def adminUpdate():
                 elif not (email, lastName):
                     cursor = db.cursor()
                     updateDetails = (
-                        """UPDATE users set FirstName = %s WHERE Username = %s"""
+                        """UPDATE Users set FirstName = %s WHERE Username = %s"""
                     )
                     values = (firstName, username)
                     cursor.execute(updateDetails, values)
                     db.commit()
                 elif not (firstName, lastName):
                     cursor = db.cursor()
-                    updateDetails = """UPDATE users set Email= %s WHERE Username = %s"""
+                    updateDetails = """UPDATE Users set Email= %s WHERE Username = %s"""
                     values = (email, username)
                     cursor.execute(updateDetails, values)
                     db.commit()
                 else:
                     cursor = db.cursor()
-                    updateDetails = """UPDATE users set Email = %s, FirstName = %s, LastName = %s WHERE Username = %s"""
+                    updateDetails = """UPDATE Users set Email = %s, FirstName = %s, LastName = %s WHERE Username = %s"""
                     values = (email, firstName, lastName, username)
                     cursor.execute(updateDetails, values)
                     db.commit()
