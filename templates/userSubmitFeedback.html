@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+{% extends "layout.html" %}
+{% block body %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Market Dashboard</title>
+    <link rel="stylesheet" href="static/css/userDashboard.css">
+</head>
+<body>
+    <header>
+        <h1>User Dashboard</h1>
+        <div id="user-info">
+            {% if success %}
+            <p class=success><strong></strong> {{ success }}
+            {% endif %}
+            <a href="{{url_for('logout')}}">Logout</a>
+        </div>
+    </header>
+
+    <section id="feedback-form">
+    <h2>Submit Feedback</h2>
+    <form method="POST" action="/submitFeedback">
+    <p>
+    <label for="feedBackTitle">Title:</label>
+    <input type="text" id="title" name="feedbackTitle" value="{{ request.form['feedbackTitle'] }}" required>
+    </p>
+    <label for="feedbackContent">Message:</label>
+    <br>
+    <textarea name="feedbackContent" placeholder="Message Content" rows="10" cols="40" required></textarea>
+    <br>
+    <input type="hidden" name="button_identifier" value="feedback_button">
+    <input type="submit" value="Submit">
+    <a href="{{url_for('userDashboard')}}">Back</a>
+    </form>
+    </section>
+
+    <footer>
+        <p>Stock Market Dashboard © 2024</p>
+    </footer>
+
+    <script src="jquery-3.7.1.min.js"></script>
+    <script type="text/javascript">
+    </script>
+
+    </script>
+
+</body>
+{% endblock %}
+</html>

@@ -661,6 +661,72 @@ def deleteProfile():
             return redirect(url_for("index"))
             session.pop("username")
 
+@app.route('/submitFeedback', methods=["POST","GET"])
+def submitFeedback():
+    if request.method == "POST":
+        title = request.form['feedbackTitle']
+        content = request.form['feedbackContent']
+
+        if not title:
+            flash('Title is required!')
+        elif not content:
+            flash('Content is required!')
+        else:
+            db = mysql.connector.connect(
+            host = "db-mysql-sgp1-12968-do-user-17367918-0.j.db.ondigitalocean.com",
+            user = "doadmin",
+            password = "AVNS_ItKG7fksQ2ww_rQ7MLX",
+            database = "market_prophet",
+            port = 25060
+            )
+            cursor = db.cursor()
+            insertUserFeedBack = "INSERT INTO Feedback(Title, Content) VALUES (%s, %s)"
+            values = (title, content)
+            cursor.execute(insertUserFeedBack, values)
+            db.commit()
+            return redirect(url_for('userDashboard'))
+
+    else:
+        return render_template('userSubmitFeedback.html')
+
+@app.route('/viewFeedback')
+def viewFeedback():
+    feedback = []
+
+    db = mysql.connector.connect(
+            host = "db-mysql-sgp1-12968-do-user-17367918-0.j.db.ondigitalocean.com",
+            user = "doadmin",
+            password = "AVNS_ItKG7fksQ2ww_rQ7MLX",
+            database = "market_prophet",
+            port = 25060
+            )
+    cursor = db.cursor()
+    getFeedback = "SELECT FeedbackID, Title, Content FROM Feedback"
+    cursor.execute(getFeedback)
+    result = cursor.fetchall()
+    for x in result:
+        feedback.append(x)
+    return render_template('adminViewFeedback.html', feedback=feedback)
+
+@app.route('/deleteFeedback', methods=["POST","GET"])
+def deleteFeedback():
+    if request.method == "POST":
+        feedbackID = request.form.get("deleteFeedback")
+
+        db = mysql.connector.connect(
+            host = "db-mysql-sgp1-12968-do-user-17367918-0.j.db.ondigitalocean.com",
+            user = "doadmin",
+            password = "AVNS_ItKG7fksQ2ww_rQ7MLX",
+            database = "market_prophet",
+            port = 25060
+            )
+
+        cursor = db.cursor()
+        deleteFeedback = "DELETE FROM Feedback WHERE FeedbackID = %s" %(feedbackID)
+        cursor.execute(deleteFeedback)
+        db.commit()
+        return render_template('adminDashboard.html')
+
 
 @app.route("/adminDashboard")
 def adminDashboard():
