@@ -47,7 +47,7 @@ CORS(app, resources={r"/*": {"origins": "*"}})
 
 yf.pdr_override()
 
-Start = date.today() - timedelta(365)
+Start = date.today() - timedelta(183)
 Start.strftime("%Y-%m-%d")
 End = date.today() + timedelta(2)
 End.strftime("%Y-%m-%d")
@@ -56,54 +56,28 @@ End.strftime("%Y-%m-%d")
 @app.route("/", methods=["POST", "GET"])
 def index():
     error = None
+    plot = None
     if request.method == "POST":
         ticker = request.form["stockTicker"]
-        result = yf.download(tickers=ticker, start=Start, end=End)
-        graph = go.Figure()
+        days = int(request.form["stockDays"])
+        StartDay = date.today() - timedelta(days)
+        StartDay.strftime("%Y-%m-%d")
+        EndDay = date.today() + timedelta(2)
+        EndDay.strftime("%Y-%m-%d")
+        
+        result = yf.download(tickers=ticker, start=StartDay, end=EndDay)['Adj Close']
         if len(result) > 0:
-            plot = None
-            stockName = yf.Ticker(str(ticker)).info["shortName"]
-            graph.add_trace(
-                go.Candlestick(
-                    x=result.index,
-                    open=result["Open"],
-                    high=result["High"],
-                    low=result["Low"],
-                    close=result["Close"],
-                    name="market data",
-                )
-            )
-
-            graph.update_layout(
-                title=f"{stockName} ({ticker})" + " Live Share Price",
-                yaxis_title="Stock Price (USD per Share)",
-            )
-
-            graph.update_xaxes(
-                rangeslider_visible=True,
-                rangeselector=dict(
-                    buttons=list(
-                        [
-                            dict(
-                                count=15,
-                                label="15m",
-                                step="minute",
-                                stepmode="backward",
-                            ),
-                            dict(
-                                count=45,
-                                label="45m",
-                                step="minute",
-                                stepmode="backward",
-                            ),
-                            dict(count=1, label="HTD", step="hour", stepmode="todate"),
-                            dict(count=3, label="3h", step="hour", stepmode="backward"),
-                            dict(step="all"),
-                        ]
-                    )
-                ),
-            )
-            return render_template("index.html", plot=graph.show())
+            stock = yf.Ticker(ticker=ticker)
+            companyName = stock.info['longName']
+            fig = plt.figure()
+            plt.plot(result, linewidth=2)
+            plt.title(f'{companyName} ({ticker})')
+            plt.ylabel('Price ($)')
+            plt.xlabel('Date')
+            fig.autofmt_xdate()
+            plt.tight_layout()
+            plot=fig.savefig('static/images/guest_graph.png', dpi=fig.dpi, bbox_inches="tight")
+            return render_template("guestSearchStock.html", plot="Success")
         else:
             error = (
                 "No such stock ticker exists. Please try again! (Example: AAPL, GOOG)"
@@ -175,8 +149,6 @@ def login():
             port = 25060
         )
 
-        print(username, password)
-
         cursor = db.cursor(buffered=True)
         checkCredentials = (
             """SELECT Username, Password FROM Users WHERE Username = '%s' AND Password= '%s'"""
@@ -231,30 +203,6 @@ def userDashboard():
 
     if "username" in session:
         username = session["username"]
-
-        db = mysql.connector.connect(
-            host = "db-mysql-sgp1-12968-do-user-17367918-0.j.db.ondigitalocean.com",
-            user = "doadmin",
-            password = "AVNS_ItKG7fksQ2ww_rQ7MLX",
-            database = "market_prophet",
-            port = 25060
-        )
-
-        cursor = db.cursor(buffered=True)
-        getUserID = """SELECT UserID from Users WHERE Username = '%s'""" % (username)
-        cursor.execute(getUserID)
-        userID = cursor.fetchall()
-
-        for y in userID:
-            cursor2 = db.cursor(buffered=True)
-            getWatchlist = (
-                """SELECT StockTicker from Watchlist WHERE UserID = '%s'"""
-                % (str(y[0]).replace("()", ""))
-            )
-            cursor2.execute(getWatchlist)
-            watchlist = cursor2.fetchall()
-            for z in watchlist:
-                userWatchlist.append(str(z[0]))
 
         if request.method == "POST":
             if request.form["button_identifier"] == "search_button":
@@ -416,6 +364,38 @@ def generate_candleStick_plot_for_recommandations(stock_data):
     )
 
 
+@app.route("/watchlistView")
+def watchlistView():
+    userWatchlist = []
+
+    if "username" in session:
+        username = session["username"]
+
+        db = mysql.connector.connect(
+            host = "db-mysql-sgp1-12968-do-user-17367918-0.j.db.ondigitalocean.com",
+            user = "doadmin",
+            password = "AVNS_ItKG7fksQ2ww_rQ7MLX",
+            database = "market_prophet",
+            port = 25060
+        )
+
+        cursor = db.cursor(buffered=True)
+        getUserID = """SELECT UserID from Users WHERE Username = '%s'""" % (username)
+        cursor.execute(getUserID)
+        userID = cursor.fetchall()
+
+        for y in userID:
+            cursor2 = db.cursor(buffered=True)
+            getWatchlist = (
+                """SELECT StockTicker from Watchlist WHERE UserID = '%s'"""
+                % (str(y[0]).replace("()", ""))
+            )
+            cursor2.execute(getWatchlist)
+            watchlist = cursor2.fetchall()
+            for z in watchlist:
+                userWatchlist.append(str(z[0]))
+        return render_template("userWatchlist.html", userWatchlist=userWatchlist)
+
 @app.route("/watchlistAdd")
 def watchlistAdd():
     error = None
@@ -512,62 +492,19 @@ def watchlistRemove():
 
             elif checkDisplayBtn is not None:
                 ticker = request.form["displayStock"]
-                result = yf.download(tickers=ticker, start=Start, end=End)
+                result = yf.download(tickers=ticker, start=Start, end=End)['Adj Close']
                 if len(result) > 0:
-                    graph = go.Figure()
-                    plot = None
-                    stockName = yf.Ticker(str(ticker)).info["shortName"]
-                    graph.add_trace(
-                        go.Candlestick(
-                            x=result.index,
-                            open=result["Open"],
-                            high=result["High"],
-                            low=result["Low"],
-                            close=result["Close"],
-                            name="market data",
-                        )
-                    )
-
-                    graph.update_layout(
-                        title=f"{stockName} ({ticker})" + " Live Share Price",
-                        yaxis_title="Stock Price (USD per Share)",
-                    )
-
-                    graph.update_xaxes(
-                        rangeslider_visible=True,
-                        rangeselector=dict(
-                            buttons=list(
-                                [
-                                    dict(
-                                        count=15,
-                                        label="15m",
-                                        step="minute",
-                                        stepmode="backward",
-                                    ),
-                                    dict(
-                                        count=45,
-                                        label="45m",
-                                        step="minute",
-                                        stepmode="backward",
-                                    ),
-                                    dict(
-                                        count=1,
-                                        label="HTD",
-                                        step="hour",
-                                        stepmode="todate",
-                                    ),
-                                    dict(
-                                        count=3,
-                                        label="3h",
-                                        step="hour",
-                                        stepmode="backward",
-                                    ),
-                                    dict(step="all"),
-                                ]
-                            )
-                        ),
-                    )
-                    return redirect(url_for("userDashboard", plot=graph.show()))
+                    stock = yf.Ticker(ticker=ticker)
+                    companyName = stock.info['longName']
+                    fig = plt.figure()
+                    plt.plot(result, linewidth=2)
+                    plt.title(f'{companyName} ({ticker})')
+                    plt.ylabel('Price ($)')
+                    plt.xlabel('Date')
+                    fig.autofmt_xdate()
+                    plt.tight_layout()
+                    plot=fig.savefig('static/images/user_graph.png', dpi=fig.dpi, bbox_inches="tight")
+                    return render_template("userSearchStock.html", plot="Success")
         return render_template("userDashboard.html")
 
 
@@ -731,7 +668,11 @@ def deleteFeedback():
 
 @app.route("/adminDashboard")
 def adminDashboard():
-    return render_template("adminDashboard.html")
+    if "username" in session:
+        return render_template("adminDashboard.html")
+    else:
+        error = "You are not logged in. Please try again!"
+        return render_template("login.html", error=error)
 
 
 @app.route("/adminSearch", methods=["POST", "GET"])

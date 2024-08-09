@@ -6,7 +6,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Stock Market Service</title>
-    <link rel="stylesheet" href="static/css/index.css"> 
+    <link rel="stylesheet" href="static/css/guestSearchStock.css"> 
 </head>
 <body>
     <header>
@@ -18,27 +18,19 @@
     </header>
 
     <form method="POST" action="/">
-    <div class="search-section">
-            <label for="stockName">Stock Ticker:</label>
-            <input type="text" id="stockTicker" name="stockTicker" placeholder="e.g. (AAPL, GOOG)" required><br><br>
-            <label for="stockDays">Number of days:</label>
-            <input type="number" id="stockDays" name="stockDays" min=1 max=50000 placeholder="30" required><br><br>
-            <input type="submit" value="Search">
-            {% if error %}
-            <p class=error><strong>Error:</strong> {{ error }}
+    <div class="main-container">  
+            {% if plot %}
+            <div class="graph-container">
+            <img src="static/images/guest_graph.png" alt="graph image" />
+            </div>
             {% endif %}
-    </div>
+            <div class="buttons-container">
+            <p>
+            <a href="/">Return to Homepage</a>
+            </p>
+            </div>
+    </div> 
     </form>
-    
-
-    <section class="stock-display">
-        <h2>Featured Stocks</h2>
-        <div class="stock-list">
-            <div class="stock">AAPL - Apple Inc.</div>
-            <div class="stock">GOOGL - Alphabet Inc.</div>
-            <div class="stock">MSFT - Microsoft Corporation</div>
-        </div>
-    </section>
 
     <footer>
         <p>Stock Market Service © 2024</p>
